@@ -94,7 +94,7 @@ def test_graph_and_rag():
     from novacart.graph.build_graph import load_graph
     from novacart.graph.rag.engine import GraphRAG
     G = load_graph()
-    assert G.number_of_nodes() > 4000
+    assert G.number_of_nodes() > settings.n_customers  # customers + products + categories
     rag = GraphRAG(G)
     res = rag.ask("Who are the most influential products?")
     assert res["intent"] == "influential_products"
