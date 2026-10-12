@@ -1,0 +1,37 @@
+image:
+  repository: novacart
+  tag: baked
+  pullPolicy: IfNotPresent   # image is kind-loaded, never pulled from a registry
+
+# Feature service in-cluster DNS name the prediction service dials.
+featureServiceUrl: "http://feature-service:8101"
+
+resources:
+  requests: { cpu: "100m", memory: "256Mi" }
+  limits:   { cpu: "750m", memory: "768Mi" }
+
+# One entry per microservice. All run from the SAME image, different module+port.
+services:
+  - name: feature-service
+    module: novacart.serving.feature_service
+    port: 8101
+    replicas: 1
+  - name: prediction-service
+    module: novacart.serving.prediction_service
+    port: 8102
+    replicas: 1
+  - name: forecast-service
+    module: novacart.forecasting.service
+    port: 8104
+    replicas: 1
+  - name: graph-rag
+    module: novacart.graph.service
+    port: 8103
+    replicas: 1
+
+# Horizontal Pod Autoscaler for the latency-critical prediction service.
+hpa:
+  target: prediction-service
+  minReplicas: 1
+  maxReplicas: 5
+  cpuUtilization: 70

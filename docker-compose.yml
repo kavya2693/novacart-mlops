@@ -1,0 +1,64 @@
+# Production topology for NovaCart. Local dev runs the same code on SQLite +
+# the file-registry (see README); this compose brings up the "real" backends
+# (Postgres = the warehouse, MLflow = the registry) plus the four services.
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: novacart
+      POSTGRES_PASSWORD: novacart
+      POSTGRES_DB: novacart
+    ports: ["5432:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U novacart"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.16.2
+    command: >
+      mlflow server --host 0.0.0.0 --port 5000
+      --backend-store-uri postgresql://novacart:novacart@postgres/novacart
+      --default-artifact-root /mlruns
+    ports: ["5000:5000"]
+    depends_on:
+      postgres: {condition: service_healthy}
+    volumes: ["mlruns:/mlruns"]
+
+  feature-service:
+    build: {context: ., dockerfile: docker/Dockerfile}
+    command: uvicorn novacart.serving.feature_service:app --host 0.0.0.0 --port 8101
+    environment:
+      NOVACART_DB_URL: postgresql://novacart:novacart@postgres/novacart
+    ports: ["8101:8101"]
+    depends_on:
+      postgres: {condition: service_healthy}
+
+  prediction-service:
+    build: {context: ., dockerfile: docker/Dockerfile}
+    command: uvicorn novacart.serving.prediction_service:app --host 0.0.0.0 --port 8102
+    environment:
+      NOVACART_DB_URL: postgresql://novacart:novacart@postgres/novacart
+      NOVACART_FEATURE_SERVICE_URL: http://feature-service:8101
+    ports: ["8102:8102"]
+    depends_on: [feature-service]
+
+  graph-rag:
+    build: {context: ., dockerfile: docker/Dockerfile}
+    command: uvicorn novacart.graph.service:app --host 0.0.0.0 --port 8103
+    environment:
+      NOVACART_DB_URL: postgresql://novacart:novacart@postgres/novacart
+    ports: ["8103:8103"]
+    depends_on:
+      postgres: {condition: service_healthy}
+
+  forecast-service:
+    build: {context: ., dockerfile: docker/Dockerfile}
+    command: uvicorn novacart.forecasting.service:app --host 0.0.0.0 --port 8104
+    ports: ["8104:8104"]
+
+volumes:
+  pgdata:
+  mlruns:

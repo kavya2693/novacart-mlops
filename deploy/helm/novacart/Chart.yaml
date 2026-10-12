@@ -1,0 +1,6 @@
+apiVersion: v2
+name: novacart
+description: Secure serving layer for the NovaCart ML platform (churn, forecast, graph-RAG, features)
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

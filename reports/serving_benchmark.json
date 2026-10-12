@@ -1,0 +1,21 @@
+{
+  "base_url": "http://127.0.0.1:8002",
+  "requests_total": 2000,
+  "requests_ok": 2000,
+  "errors": 0,
+  "concurrency": 16,
+  "wall_seconds": 12.802,
+  "throughput_rps": 156.2,
+  "latency_ms": {
+    "mean": 102.2,
+    "p50": 98.31,
+    "p95": 149.44,
+    "p99": 179.52,
+    "max": 296.16
+  },
+  "correctness": {
+    "deterministic": true,
+    "probability_in_range": true,
+    "checked": 25
+  }
+}

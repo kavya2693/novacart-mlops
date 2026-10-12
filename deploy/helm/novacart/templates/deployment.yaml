@@ -1,0 +1,44 @@
+{{- range .Values.services }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .name }}
+  labels:
+    app: {{ .name }}
+spec:
+  replicas: {{ .replicas }}
+  selector:
+    matchLabels:
+      app: {{ .name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .name }}
+    spec:
+      containers:
+        - name: {{ .name }}
+          image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag }}"
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
+          command: ["python", "-m", "uvicorn"]
+          args: ["{{ .module }}:app", "--host", "0.0.0.0", "--port", "{{ .port }}"]
+          ports:
+            - containerPort: {{ .port }}
+          env:
+            - name: NOVACART_FEATURE_SERVICE_URL
+              value: "{{ $.Values.featureServiceUrl }}"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .port }}
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .port }}
+            initialDelaySeconds: 12
+            periodSeconds: 20
+          resources:
+{{ toYaml $.Values.resources | indent 12 }}
+---
+{{- end }}

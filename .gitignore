@@ -1,0 +1,30 @@
+# environments
+.venv/
+venv/
+env/
+.env
+.env.*
+
+# python
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+
+# generated data, graphs and model artifacts (rebuilt by `make pipeline`)
+data/
+*.db
+*.sqlite
+*.parquet
+*.graphml
+*.joblib
+*.pkl
+*.onnx
+*.pt
+*.csv.gz
+*.dump
+
+# logs and OS noise
+*.log
+logs/
+.DS_Store
