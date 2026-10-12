@@ -16,6 +16,7 @@ jobs:
       - name: Run pipeline (smaller company for speed)
         env:
           NOVACART_N_CUSTOMERS: "800"
+          PY: python
         run: bash scripts/run_pipeline.sh
       - name: Tests
         run: python -m pytest -q tests/
